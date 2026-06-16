@@ -537,13 +537,17 @@ class KextMaestro:
         seen_identifier = set()
 
         def visit(bundle):
-            if os.path.splitext(os.path.basename(bundle.get("BundlePath")))[0] in unload_kext or (bundle.get("BundlePath"), bundle.get("BundleIdentifier")) in visited:
+            kext_name = os.path.splitext(os.path.basename(bundle.get("BundlePath")))[0]
+            if kext_name == "rtw88":
+                kext_name = "Feixiao"
+
+            if kext_name in unload_kext or (bundle.get("BundlePath"), bundle.get("BundleIdentifier")) in visited:
                 return
                         
             bundle["MaxKernel"] = os_data.get_latest_darwin_version()
             bundle["MinKernel"] = os_data.get_lowest_darwin_version()
 
-            kext_index = kext_data.kext_index_by_name.get(os.path.splitext(os.path.basename(bundle.get("BundlePath")))[0])
+            kext_index = kext_data.kext_index_by_name.get(kext_name)
 
             if kext_index:
                 bundle["MaxKernel"] = self.kexts[kext_index].max_darwin_version
@@ -556,9 +560,9 @@ class KextMaestro:
                     bundle["MaxKernel"] = bundle["MaxKernel"] if self.utils.parse_darwin_version(bundle["MaxKernel"]) < self.utils.parse_darwin_version(bundle_dict[dep_identifier].get("MaxKernel", "99.99.99")) else bundle_dict[dep_identifier]["MaxKernel"]
                     bundle["MinKernel"] = bundle["MinKernel"] if self.utils.parse_darwin_version(bundle["MinKernel"]) > self.utils.parse_darwin_version(bundle_dict[dep_identifier].get("MinKernel", "0.0.0")) else bundle_dict[dep_identifier]["MinKernel"]
 
-            if os.path.splitext(os.path.basename(bundle.get("BundlePath")))[0] == "AirPortBrcm4360_Injector":
+            if kext_name == "AirPortBrcm4360_Injector":
                 bundle["MaxKernel"] = "19.99.99"
-            elif os.path.splitext(os.path.basename(bundle.get("BundlePath")))[0] == "AirportItlwm":
+            elif kext_name == "AirportItlwm":
                 bundle["MaxKernel"] = macos_version[:2] + bundle["MaxKernel"][2:]
                 bundle["MinKernel"] = macos_version[:2] + bundle["MinKernel"][2:]
 
